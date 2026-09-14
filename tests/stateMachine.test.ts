@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import test from "node:test";
 import { applyRuntimeEvent, createWorkSession } from "../src/runtime/stateMachine.js";
 import type { RuntimeEvent } from "../src/shared/types.js";
@@ -82,6 +82,63 @@ test("state machine rejects duplicate and stale events", () => {
     },
   })), /Stale runtime event/);
 });
+
+test("a user direction records activity while the session remains working", () => {
+  let session = applyRuntimeEvent(
+    createWorkSession({ id: "session_1", task: "Create a landing page", now }),
+    event({ id: "event_started", type: "work.started" }),
+  );
+
+  session = applyRuntimeEvent(session, directionEvent());
+
+  assert.equal(session.status, "working");
+  assert.equal(session.directions[0]?.value, "minimal");
+  assert.equal(session.activity[0]?.metadata?.source, "user");
+});
+
+test("a user direction rejects wrong-session and terminal mutations", () => {
+  const working = applyRuntimeEvent(
+    createWorkSession({ id: "session_1", task: "Create a landing page", now }),
+    event({ id: "event_started", type: "work.started" }),
+  );
+  assert.throws(() => applyRuntimeEvent(working, directionEvent("another_session")), /belongs to another_session/);
+
+  const completed = applyRuntimeEvent(working, event({
+    id: "event_completed",
+    type: "work.completed",
+    completion: { completedAt: now },
+  }));
+  assert.throws(() => applyRuntimeEvent(completed, directionEvent()), /Cannot apply user.direction_provided after session is completed/);
+
+  const failed = applyRuntimeEvent(working, event({
+    id: "event_failed",
+    type: "work.failed",
+    error: { failedAt: now, message: "Failed" },
+  }));
+  assert.throws(() => applyRuntimeEvent(failed, directionEvent()), /Cannot apply user.direction_provided after session is failed/);
+});
+
+function directionEvent(directionSessionId = "session_1"): RuntimeEvent {
+  return event({
+    id: `event_direction_${directionSessionId}`,
+    type: "user.direction_provided",
+    direction: {
+      id: `direction_${directionSessionId}`,
+      sessionId: directionSessionId,
+      kind: "visual_style",
+      value: "minimal",
+      instruction: "Use a minimal visual direction.",
+      createdAt: now,
+    },
+    activity: {
+      id: `activity_${directionSessionId}`,
+      sessionId: "session_1",
+      message: "User shaped the result: minimal.",
+      metadata: { source: "user" },
+      createdAt: now,
+    },
+  });
+}
 
 function event(input: { type: RuntimeEvent["type"]; id?: string; createdAt?: string } & Record<string, unknown>): RuntimeEvent {
   const { id, createdAt, ...rest } = input;

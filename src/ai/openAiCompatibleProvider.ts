@@ -1,4 +1,4 @@
-﻿import { createId } from "../shared/ids.js";
+import { createId } from "../shared/ids.js";
 import type {
   Artifact,
   RuntimeEvent,
@@ -230,8 +230,9 @@ Return only strict JSON with this shape:
 }
 Allowed event types: work.activity, artifact.updated, ai.needs_user, work.completed.
 For the first pass, do real planning and produce a useful HTML draft, then ask one meaningful style/content decision if it would improve the result.
-After a user decision is provided, update the same artifact so the decision clearly influences the HTML, then emit work.completed.
-Do not emit fake progress. Do not mention timers. Do not include markdown fences.`;
+	After a user decision is provided, update the same artifact so the decision clearly influences the HTML, then emit work.completed.
+	Apply every accumulated user Shape direction as well as the required decision. The final artifact must reflect both when both exist.
+	Do not emit fake progress. Do not mention timers. Do not include markdown fences.`;
 }
 
 function startPrompt(session: WorkSession): string {
@@ -253,6 +254,7 @@ Pending decision prompt answered: ${context.decision.requestId}
 User response: ${context.decision.response}
 Selected option: ${context.decision.selectedOptionId ?? "none"}
 Prior decisions: ${JSON.stringify(context.session.decisions)}
+User Shape directions: ${JSON.stringify(context.session.directions)}
 
-Update the website artifact so the user decision visibly influences it. Then complete the work.`;
+Update the website artifact so every Shape direction and the required user decision visibly influence it. Then complete the work.`;
 }

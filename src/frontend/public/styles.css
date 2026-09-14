@@ -73,8 +73,8 @@ button { color: inherit; }
 .control-pane, .work-pane { min-width: 0; }
 .control-pane { border-right: 1px solid var(--line); }
 .work-pane { border-left: 1px solid var(--line); padding: 28px 22px; }
-.control-section, .decision-section, .failure-section { padding: 28px 24px; }
-.decision-section, .failure-section { border-top: 1px solid var(--line); }
+.control-section, .shape-section, .decision-section, .failure-section { padding: 28px 24px; }
+.shape-section, .decision-section, .failure-section { border-top: 1px solid var(--line); }
 
 .section-heading { display: flex; gap: 13px; align-items: flex-start; margin-bottom: 24px; }
 .section-heading.compact { margin-bottom: 22px; }
@@ -138,8 +138,20 @@ textarea:disabled { color: var(--muted); background: #f0f1ee; }
 .session-state strong { color: var(--ink); text-transform: capitalize; }
 
 .decision-section { background: #f7ffe1; border-top-color: #d2e5a1; }
+.shape-section { background: #f5f8f6; }
+.shape-labels { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.shape-labels span { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.shape-flag { margin: 0; padding: 4px 7px; border-radius: 3px; background: #dceee7; color: #1e6756; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.shape-prompt { margin: 9px 0 13px; color: var(--muted); font-size: 13px; }
+.shape-options { display: flex; flex-wrap: wrap; gap: 7px; }
+.shape-options button { padding: 8px 10px; border: 1px solid #c8cec9; border-radius: var(--radius); background: var(--surface); cursor: pointer; font-size: 12px; font-weight: 680; }
+.shape-options button:hover:not(:disabled) { border-color: var(--signal); color: var(--signal); }
+.shape-options button:disabled { opacity: .48; cursor: wait; }
+.shape-acknowledgement { margin: 0; padding-left: 10px; border-left: 2px solid var(--signal); color: #3e5c53; font-size: 12px; line-height: 1.5; }
+body[data-status="working"] .control-section form,
 body[data-status="needs_user"] .control-section form,
 body[data-status="failed"] .control-section form { display: none; }
+body[data-status="working"] .control-section,
 body[data-status="needs_user"] .control-section,
 body[data-status="failed"] .control-section { padding-bottom: 18px; }
 .decision-flag { width: max-content; margin: 0 0 12px; padding: 4px 7px; background: var(--accent); border-radius: 3px; font-size: 10px; font-weight: 800; text-transform: uppercase; }

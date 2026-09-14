@@ -1,4 +1,4 @@
-﻿export const WORK_SESSION_STATUSES = [
+export const WORK_SESSION_STATUSES = [
   "idle",
   "working",
   "needs_user",
@@ -60,6 +60,18 @@ export interface UserDecision {
   createdAt: string;
 }
 
+export const USER_DIRECTION_VALUES = ["minimal", "bold", "ai_decide"] as const;
+export type UserDirectionValue = (typeof USER_DIRECTION_VALUES)[number];
+
+export interface UserDirection {
+  id: string;
+  sessionId: string;
+  kind: "visual_style";
+  value: UserDirectionValue;
+  instruction: string;
+  createdAt: string;
+}
+
 export interface CompletionState {
   completedAt: string;
   summary?: string;
@@ -80,6 +92,7 @@ export interface WorkSession {
   activity: WorkActivity[];
   pendingUserDecision?: UserDecisionRequest;
   decisions: UserDecision[];
+  directions: UserDirection[];
   events: RuntimeEvent[];
   createdAt: string;
   updatedAt: string;
@@ -118,6 +131,12 @@ export interface UserRespondedEvent extends BaseRuntimeEvent {
   decision: UserDecision;
 }
 
+export interface UserDirectionProvidedEvent extends BaseRuntimeEvent {
+  type: "user.direction_provided";
+  direction: UserDirection;
+  activity: WorkActivity;
+}
+
 export interface WorkResumedEvent extends BaseRuntimeEvent {
   type: "work.resumed";
 }
@@ -138,6 +157,7 @@ export type RuntimeEvent =
   | ArtifactUpdatedEvent
   | AiNeedsUserEvent
   | UserRespondedEvent
+  | UserDirectionProvidedEvent
   | WorkResumedEvent
   | WorkCompletedEvent
   | WorkFailedEvent;

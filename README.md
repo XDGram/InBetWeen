@@ -23,3 +23,5 @@ Provider configuration is loaded from environment variables. No API keys are har
 See `.env.example` for the intended shape.
 
 The interface creates a real runtime session, subscribes to committed events over Server-Sent Events, and renders website artifacts in a sandboxed preview. Starting and continuing work use the configured AI provider; missing or invalid provider configuration becomes a visible runtime failure.
+
+While a website session is working, the optional **Shape** action records a non-blocking visual direction such as Minimal or Bold. It remains distinct from a required AI decision, is persisted as a runtime event and user activity, and is included in the provider's later continuation context.

@@ -1,4 +1,4 @@
-import type { RuntimeEvent, WorkSession } from "../shared/types.js";
+import type { RuntimeEvent, UserDirectionValue, WorkSession } from "../shared/types.js";
 
 export interface RuntimeEventEnvelope {
   event: RuntimeEvent;
@@ -12,6 +12,10 @@ export interface CreateSessionRequest {
 export interface SubmitDecisionRequest {
   response: string;
   selectedOptionId?: string;
+}
+
+export interface SubmitDirectionRequest {
+  value: UserDirectionValue;
 }
 
 export interface AcceptedCommand {

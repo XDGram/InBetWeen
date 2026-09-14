@@ -1,7 +1,7 @@
 import type { AiProvider } from "../ai/provider.js";
 import type { PersistenceAdapter } from "../persistence/persistence.js";
 import { createId, type RuntimeClock, SystemClock } from "../shared/ids.js";
-import type { RuntimeEvent, UserDecision, WorkSession } from "../shared/types.js";
+import type { RuntimeEvent, UserDecision, UserDirectionValue, WorkSession } from "../shared/types.js";
 import { applyRuntimeEvent, createWorkSession } from "./stateMachine.js";
 
 export interface WorkRuntimeOptions {
@@ -11,6 +11,12 @@ export interface WorkRuntimeOptions {
 }
 
 export type RuntimeEventListener = (session: WorkSession, event: RuntimeEvent) => void;
+
+const directionInstructions: Record<UserDirectionValue, string> = {
+  minimal: "Use a minimal visual direction with restraint, clear hierarchy, and generous space.",
+  bold: "Use a bold visual direction with strong contrast, expressive type, and confident composition.",
+  ai_decide: "Choose the visual direction that best supports the task and explain it through the artifact.",
+};
 
 export class WorkRuntime {
   private readonly aiProvider: AiProvider;
@@ -75,6 +81,34 @@ export class WorkRuntime {
     return this.consumeProviderEvents(session, this.aiProvider.continueWork({ session, decision }));
   }
 
+  async provideDirection(sessionId: string, value: UserDirectionValue): Promise<WorkSession> {
+    const session = await this.requireSession(sessionId);
+    const now = this.clock.now();
+    const direction = {
+      id: createId("direction"),
+      sessionId,
+      kind: "visual_style" as const,
+      value,
+      instruction: directionInstructions[value],
+      createdAt: now,
+    };
+
+    return this.commitEvent(session, {
+      id: createId("event"),
+      sessionId,
+      type: "user.direction_provided",
+      direction,
+      activity: {
+        id: createId("activity"),
+        sessionId,
+        message: `User shaped the result: ${direction.instruction}`,
+        metadata: { source: "user", directionValue: value },
+        createdAt: now,
+      },
+      createdAt: now,
+    });
+  }
+
   async getSession(sessionId: string): Promise<WorkSession | undefined> {
     return this.persistence.getSession(sessionId);
   }
@@ -126,7 +160,8 @@ export class WorkRuntime {
   }
 
   private async commitEvent(session: WorkSession, event: RuntimeEvent): Promise<WorkSession> {
-    const next = applyRuntimeEvent(session, event);
+    const authoritativeSession = (await this.persistence.getSession(session.id)) ?? session;
+    const next = applyRuntimeEvent(authoritativeSession, event);
     await this.persistence.appendEvent(event);
 
     if (event.type === "artifact.updated") {
@@ -135,6 +170,10 @@ export class WorkRuntime {
 
     if (event.type === "user.responded") {
       await this.persistence.saveDecision(event.decision);
+    }
+
+    if (event.type === "user.direction_provided") {
+      await this.persistence.saveDirection(event.direction);
     }
 
     await this.persistence.saveSession(next);

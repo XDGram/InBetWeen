@@ -1,4 +1,4 @@
-﻿import { createId } from "../shared/ids.js";
+import { createId } from "../shared/ids.js";
 import type { CreateWorkSessionInput, RuntimeEvent, WorkSession } from "../shared/types.js";
 
 const terminalStatuses = new Set(["completed", "failed"]);
@@ -12,6 +12,7 @@ export function createWorkSession(input: CreateWorkSessionInput): WorkSession {
     status: "idle",
     activity: [],
     decisions: [],
+    directions: [],
     events: [],
     createdAt: now,
     updatedAt: now,
@@ -87,6 +88,23 @@ export function applyRuntimeEvent(session: WorkSession, event: RuntimeEvent): Wo
         ...next,
         decisions: [...session.decisions, event.decision],
         pendingUserDecision: undefined,
+      };
+    }
+
+    case "user.direction_provided": {
+      if (session.status !== "working") {
+        throw new Error(`Cannot shape the result while ${session.status}`);
+      }
+      if (event.direction.sessionId !== session.id) {
+        throw new Error(`Direction ${event.direction.id} belongs to ${event.direction.sessionId}, not ${session.id}`);
+      }
+      if (event.activity.sessionId !== session.id) {
+        throw new Error(`Activity ${event.activity.id} belongs to ${event.activity.sessionId}, not ${session.id}`);
+      }
+      return {
+        ...next,
+        directions: [...session.directions, event.direction],
+        activity: [...session.activity, event.activity],
       };
     }
 

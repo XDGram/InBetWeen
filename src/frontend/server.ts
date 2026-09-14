@@ -2,8 +2,8 @@ import { createReadStream, existsSync } from "node:fs";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { extname, resolve } from "node:path";
 import type { WorkRuntime } from "../runtime/workRuntime.js";
-import type { WorkSession } from "../shared/types.js";
-import type { AcceptedCommand, ApiError, CreateSessionRequest, SubmitDecisionRequest } from "./contracts.js";
+import { USER_DIRECTION_VALUES, type UserDirectionValue } from "../shared/types.js";
+import type { AcceptedCommand, ApiError, CreateSessionRequest, SubmitDecisionRequest, SubmitDirectionRequest } from "./contracts.js";
 
 export interface FrontendServerOptions {
   runtime: WorkRuntime;
@@ -95,6 +95,27 @@ export function createFrontendServer(options: FrontendServerOptions): Server {
         return;
       }
 
+      const directionMatch = url.pathname.match(/^\/api\/sessions\/([^/]+)\/directions$/);
+      if (request.method === "POST" && directionMatch) {
+        const sessionId = decodeURIComponent(directionMatch[1]!);
+        const session = await options.runtime.getSession(sessionId);
+        if (!session) {
+          sendJson(response, 404, { error: "Session not found." } satisfies ApiError);
+          return;
+        }
+        if (session.status !== "working") {
+          sendJson(response, 409, { error: `Cannot shape a session while it is ${session.status}.` } satisfies ApiError);
+          return;
+        }
+        const body = await readJson<SubmitDirectionRequest>(request);
+        if (!isDirectionValue(body.value)) {
+          sendJson(response, 400, { error: "Direction must be minimal, bold, or ai_decide." } satisfies ApiError);
+          return;
+        }
+        sendJson(response, 201, await options.runtime.provideDirection(sessionId, body.value));
+        return;
+      }
+
       if (request.method === "GET") {
         serveStatic(publicDirectory, url.pathname, response);
         return;
@@ -111,6 +132,10 @@ export function createFrontendServer(options: FrontendServerOptions): Server {
       }
     }
   });
+}
+
+function isDirectionValue(value: unknown): value is UserDirectionValue {
+  return typeof value === "string" && USER_DIRECTION_VALUES.includes(value as UserDirectionValue);
 }
 
 async function openEventStream(

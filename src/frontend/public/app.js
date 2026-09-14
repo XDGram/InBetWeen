@@ -3,6 +3,9 @@ const elements = {
   taskInput: document.querySelector("#task-input"),
   startButton: document.querySelector("#start-button"),
   sessionStatus: document.querySelector("#session-status"),
+  shapeSection: document.querySelector("#shape-section"),
+  shapeOptions: document.querySelector("#shape-options"),
+  shapeAcknowledgement: document.querySelector("#shape-acknowledgement"),
   connection: document.querySelector("#connection"),
   connectionLabel: document.querySelector("#connection-label"),
   decisionSection: document.querySelector("#decision-section"),
@@ -31,6 +34,23 @@ let session;
 let eventSource;
 let selectedOptionId;
 let toastTimeout;
+
+elements.shapeOptions.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-direction]");
+  if (!button || !session || session.status !== "working") return;
+
+  for (const option of elements.shapeOptions.querySelectorAll("button")) option.disabled = true;
+  try {
+    session = await request(`/api/sessions/${encodeURIComponent(session.id)}/directions`, {
+      method: "POST",
+      body: JSON.stringify({ value: button.dataset.direction }),
+    });
+    renderSession();
+  } catch (error) {
+    showToast(error.message);
+    for (const option of elements.shapeOptions.querySelectorAll("button")) option.disabled = false;
+  }
+});
 
 elements.taskForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -138,10 +158,25 @@ function renderSession() {
   setCommandBusy(false);
 
   renderDecision(status);
+  renderShape(status);
   renderArtifact();
   renderActivity(status);
   renderCompletion(status);
   renderFailure(status);
+}
+
+function renderShape(status) {
+  const directions = session?.directions ?? [];
+  const latest = directions.at(-1);
+  elements.shapeSection.hidden = status !== "working";
+  elements.shapeOptions.hidden = Boolean(latest);
+  elements.shapeAcknowledgement.hidden = !latest;
+  if (latest) {
+    const labels = { minimal: "Minimal", bold: "Bold", ai_decide: "Let AI decide" };
+    elements.shapeAcknowledgement.textContent = `${labels[latest.value]} recorded. AI will use it in its next artifact update.`;
+  } else {
+    for (const option of elements.shapeOptions.querySelectorAll("button")) option.disabled = false;
+  }
 }
 
 function renderDecision(status) {
@@ -186,7 +221,7 @@ function renderActivity(status) {
   const events = session?.events ?? [];
   elements.activityList.replaceChildren(...(events.length ? events.map(renderEvent) : [emptyActivity()]));
 
-  const latestActivity = [...(session?.activity ?? [])].at(-1);
+  const latestActivity = [...(session?.activity ?? [])].filter((activity) => activity.metadata?.source !== "user").at(-1);
   elements.nowWorking.hidden = status !== "working";
   elements.currentActivity.textContent = latestActivity?.message ?? "AI work has started.";
 }
@@ -210,6 +245,7 @@ function eventMessage(event) {
     case "artifact.updated": return `${event.artifact.title ?? "Artifact"} updated to version ${event.artifact.version}`;
     case "ai.needs_user": return `Your direction is needed: ${event.decision.prompt}`;
     case "user.responded": return `Decision received: ${event.decision.response}`;
+    case "user.direction_provided": return `You shaped the result: ${directionLabel(event.direction.value)}`;
     case "work.resumed": return "Work resumed with your decision";
     case "work.completed": return event.completion.summary ?? "Work completed";
     case "work.failed": return `Work failed: ${event.error.message}`;
@@ -230,14 +266,23 @@ function renderCompletion(status) {
 
   elements.completionSummary.textContent = session.completion?.summary ?? "The AI completed the landing page artifact.";
   const decisions = session.decisions ?? [];
+  const directions = session.directions ?? [];
   elements.decisionSummary.replaceChildren();
-  if (decisions.length) {
+  if (directions.length || decisions.length) {
     const summary = document.createElement("p");
     const label = document.createElement("strong");
     label.textContent = "Your influence: ";
-    summary.append(label, document.createTextNode(decisions.map((decision) => decision.response).join("; ")));
+    const influence = [
+      ...directions.map((direction) => `Shape: ${directionLabel(direction.value)}`),
+      ...decisions.map((decision) => `Decision: ${decision.response}`),
+    ];
+    summary.append(label, document.createTextNode(influence.join("; ")));
     elements.decisionSummary.append(summary);
   }
+}
+
+function directionLabel(value) {
+  return ({ minimal: "Minimal", bold: "Bold", ai_decide: "Let AI decide" })[value] ?? value;
 }
 
 function renderFailure(status) {

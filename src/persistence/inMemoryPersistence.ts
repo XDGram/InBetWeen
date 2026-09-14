@@ -1,4 +1,4 @@
-﻿import type { Artifact, RuntimeEvent, UserDecision, WorkSession } from "../shared/types.js";
+import type { Artifact, RuntimeEvent, UserDecision, UserDirection, WorkSession } from "../shared/types.js";
 import type { PersistenceAdapter } from "./persistence.js";
 
 export class InMemoryPersistence implements PersistenceAdapter {
@@ -6,6 +6,7 @@ export class InMemoryPersistence implements PersistenceAdapter {
   private readonly events: RuntimeEvent[] = [];
   private readonly artifacts = new Map<string, Artifact>();
   private readonly decisions: UserDecision[] = [];
+  private readonly directions: UserDirection[] = [];
 
   async saveSession(session: WorkSession): Promise<void> {
     this.sessions.set(session.id, structuredClone(session));
@@ -45,5 +46,15 @@ export class InMemoryPersistence implements PersistenceAdapter {
 
   async listDecisions(sessionId: string): Promise<UserDecision[]> {
     return this.decisions.filter((decision) => decision.sessionId === sessionId).map((decision) => structuredClone(decision));
+  }
+
+  async saveDirection(direction: UserDirection): Promise<void> {
+    this.directions.push(structuredClone(direction));
+  }
+
+  async listDirections(sessionId: string): Promise<UserDirection[]> {
+    return this.directions
+      .filter((direction) => direction.sessionId === sessionId)
+      .map((direction) => structuredClone(direction));
   }
 }

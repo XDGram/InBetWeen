@@ -1,4 +1,4 @@
-﻿import type { Artifact, RuntimeEvent, UserDecision, WorkSession } from "../shared/types.js";
+import type { Artifact, RuntimeEvent, UserDecision, UserDirection, WorkSession } from "../shared/types.js";
 
 export interface WorkSessionStore {
   saveSession(session: WorkSession): Promise<void>;
@@ -21,8 +21,14 @@ export interface UserDecisionStore {
   listDecisions(sessionId: string): Promise<UserDecision[]>;
 }
 
+export interface UserDirectionStore {
+  saveDirection(direction: UserDirection): Promise<void>;
+  listDirections(sessionId: string): Promise<UserDirection[]>;
+}
+
 export interface PersistenceAdapter
   extends WorkSessionStore,
     RuntimeEventStore,
     ArtifactStore,
-    UserDecisionStore {}
+    UserDecisionStore,
+    UserDirectionStore {}
