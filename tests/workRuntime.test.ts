@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import test from "node:test";
 import type { AiProvider, AiStartContext } from "../src/ai/provider.js";
 import { InMemoryPersistence } from "../src/persistence/inMemoryPersistence.js";
@@ -48,6 +48,27 @@ test("runtime persists a complete user-shaped work lifecycle", async () => {
   const decisions = await persistence.listDecisions(created.id);
   assert.equal(decisions.length, 1);
   assert.equal(decisions[0]?.selectedOptionId, "concise");
+});
+
+test("runtime publishes only committed provider events with current session snapshots", async () => {
+  const persistence = new InMemoryPersistence();
+  const runtime = new WorkRuntime({ aiProvider: new ScriptedLifecycleProvider(), persistence });
+  const created = await runtime.createSession("Create a landing page");
+  const published: Array<{ eventType: string; status: string }> = [];
+  const unsubscribe = runtime.subscribe(created.id, (session, event) => {
+    published.push({ eventType: event.type, status: session.status });
+  });
+
+  await runtime.startWork(created.id);
+  unsubscribe();
+
+  assert.deepEqual(published, [
+    { eventType: "work.started", status: "working" },
+    { eventType: "work.activity", status: "working" },
+    { eventType: "artifact.updated", status: "working" },
+    { eventType: "ai.needs_user", status: "needs_user" },
+  ]);
+  assert.equal((await persistence.listEvents(created.id)).length, published.length);
 });
 
 test("runtime converts provider failures into failed sessions", async () => {

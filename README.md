@@ -1,4 +1,4 @@
-﻿# InBetween
+# InBetween
 
 Stay in control while AI works.
 
@@ -12,6 +12,7 @@ Core lifecycle:
 
 - `npm run build` compiles TypeScript.
 - `npm test` builds and runs the runtime tests.
+- `npm run dev` builds and starts the user-facing interface at `http://127.0.0.1:4173`.
 - `npm run lifecycle:real` runs the real env-configured AI landing-page lifecycle.
 - `npm run lifecycle:local` runs the local scripted infrastructure/test harness.
 
@@ -20,3 +21,5 @@ Core lifecycle:
 Provider configuration is loaded from environment variables. No API keys are hardcoded.
 
 See `.env.example` for the intended shape.
+
+The interface creates a real runtime session, subscribes to committed events over Server-Sent Events, and renders website artifacts in a sandboxed preview. Starting and continuing work use the configured AI provider; missing or invalid provider configuration becomes a visible runtime failure.

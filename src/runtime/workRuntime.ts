@@ -1,4 +1,4 @@
-﻿import type { AiProvider } from "../ai/provider.js";
+import type { AiProvider } from "../ai/provider.js";
 import type { PersistenceAdapter } from "../persistence/persistence.js";
 import { createId, type RuntimeClock, SystemClock } from "../shared/ids.js";
 import type { RuntimeEvent, UserDecision, WorkSession } from "../shared/types.js";
@@ -10,10 +10,13 @@ export interface WorkRuntimeOptions {
   clock?: RuntimeClock;
 }
 
+export type RuntimeEventListener = (session: WorkSession, event: RuntimeEvent) => void;
+
 export class WorkRuntime {
   private readonly aiProvider: AiProvider;
   private readonly persistence: PersistenceAdapter;
   private readonly clock: RuntimeClock;
+  private readonly listeners = new Map<string, Set<RuntimeEventListener>>();
 
   constructor(options: WorkRuntimeOptions) {
     this.aiProvider = options.aiProvider;
@@ -76,6 +79,19 @@ export class WorkRuntime {
     return this.persistence.getSession(sessionId);
   }
 
+  subscribe(sessionId: string, listener: RuntimeEventListener): () => void {
+    const sessionListeners = this.listeners.get(sessionId) ?? new Set<RuntimeEventListener>();
+    sessionListeners.add(listener);
+    this.listeners.set(sessionId, sessionListeners);
+
+    return () => {
+      sessionListeners.delete(listener);
+      if (sessionListeners.size === 0) {
+        this.listeners.delete(sessionId);
+      }
+    };
+  }
+
   private async requireSession(sessionId: string): Promise<WorkSession> {
     const session = await this.persistence.getSession(sessionId);
     if (!session) {
@@ -122,6 +138,13 @@ export class WorkRuntime {
     }
 
     await this.persistence.saveSession(next);
+    for (const listener of this.listeners.get(session.id) ?? []) {
+      try {
+        listener(structuredClone(next), structuredClone(event));
+      } catch {
+        // Observers cannot change or interrupt authoritative runtime processing.
+      }
+    }
     return next;
   }
 }

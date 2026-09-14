@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="InBetween keeps you in control while AI works." />
+    <title>InBetween</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="InBetween home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+        <span>InBetween</span>
+      </a>
+      <p>Stay in control while AI works.</p>
+      <div class="connection" id="connection" data-connected="false">
+        <span></span><span id="connection-label">Ready</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="control-pane" aria-labelledby="task-heading">
+        <section class="control-section">
+          <div class="section-heading">
+            <span class="step-number">01</span>
+            <div>
+              <p class="eyebrow">Task</p>
+              <h1 id="task-heading">What should we make?</h1>
+            </div>
+          </div>
+
+          <form id="task-form">
+            <label class="sr-only" for="task-input">Website task</label>
+            <textarea
+              id="task-input"
+              rows="7"
+              required
+              placeholder="Create a landing page for a modern productivity app called InBetween."
+            ></textarea>
+            <button class="primary-button" id="start-button" type="submit">
+              <span>Start AI work</span><span aria-hidden="true">&#8594;</span>
+            </button>
+          </form>
+
+          <div class="session-state" aria-live="polite">
+            <span>Session state</span>
+            <strong id="session-status">Idle</strong>
+          </div>
+        </section>
+
+        <section class="decision-section" id="decision-section" hidden aria-labelledby="decision-heading">
+          <p class="decision-flag">Your decision</p>
+          <h2 id="decision-heading">The work needs your direction.</h2>
+          <p class="decision-prompt" id="decision-prompt"></p>
+          <form id="decision-form">
+            <fieldset id="decision-options">
+              <legend class="sr-only">Available choices</legend>
+            </fieldset>
+            <label for="decision-response">Add context</label>
+            <textarea id="decision-response" rows="3" placeholder="Explain what matters most to you..."></textarea>
+            <button class="primary-button" id="decision-button" type="submit">
+              <span>Use this direction</span><span aria-hidden="true">&#8594;</span>
+            </button>
+          </form>
+        </section>
+
+        <section class="failure-section" id="failure-section" hidden aria-labelledby="failure-heading">
+          <p class="eyebrow error-label">Work stopped</p>
+          <h2 id="failure-heading">This session failed.</h2>
+          <p id="failure-message"></p>
+          <button class="secondary-button" id="restart-button" type="button">Start a new session</button>
+        </section>
+      </aside>
+
+      <section class="artifact-pane" aria-labelledby="artifact-heading">
+        <header class="artifact-header">
+          <div>
+            <p class="eyebrow">Artifact</p>
+            <h2 id="artifact-heading">Website preview</h2>
+          </div>
+          <div class="artifact-meta">
+            <span id="artifact-title">No artifact yet</span>
+            <span id="artifact-version">v0</span>
+          </div>
+        </header>
+
+        <div class="browser-frame" id="browser-frame">
+          <div class="browser-bar" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <div>Preview</div>
+          </div>
+          <div class="artifact-empty" id="artifact-empty">
+            <div class="empty-glyph" aria-hidden="true"><span></span><span></span></div>
+            <p>Your website will take shape here.</p>
+            <small>Artifact updates come directly from the runtime.</small>
+          </div>
+          <iframe id="artifact-preview" title="Generated website preview" sandbox="allow-scripts" hidden></iframe>
+        </div>
+
+        <section class="completion" id="completion" hidden aria-labelledby="completion-heading">
+          <div class="completion-mark" aria-hidden="true">&#10003;</div>
+          <div>
+            <p class="eyebrow">Completed</p>
+            <h2 id="completion-heading">The artifact is ready.</h2>
+            <p id="completion-summary"></p>
+            <div id="decision-summary"></div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="work-pane" aria-labelledby="work-heading">
+        <div class="section-heading compact">
+          <span class="step-number">02</span>
+          <div>
+            <p class="eyebrow">Work</p>
+            <h2 id="work-heading">Live activity</h2>
+          </div>
+        </div>
+        <div class="now-working" id="now-working" hidden>
+          <span class="working-pulse" aria-hidden="true"></span>
+          <div>
+            <small>Now</small>
+            <p id="current-activity"></p>
+          </div>
+        </div>
+        <ol class="activity-list" id="activity-list" aria-live="polite">
+          <li class="activity-empty">Activity will appear when work begins.</li>
+        </ol>
+      </aside>
+    </main>
+
+    <div class="toast" id="toast" role="alert" hidden></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

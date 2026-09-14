@@ -1,4 +1,4 @@
-﻿import type { AiContinueContext, AiProvider, AiStartContext } from "../../src/ai/provider.js";
+import type { AiContinueContext, AiProvider, AiStartContext } from "../../src/ai/provider.js";
 import type { RuntimeEvent } from "../../src/shared/types.js";
 
 export class ScriptedLifecycleProvider implements AiProvider {
@@ -25,10 +25,11 @@ export class ScriptedLifecycleProvider implements AiProvider {
       artifact: {
         id: "artifact_core",
         sessionId: context.session.id,
-        kind: "markdown",
+        kind: "website",
         version: 1,
-        title: "Initial Direction",
-        content: "# Initial Direction\n\nThe artifact needs one product decision before completion.",
+        title: "Initial Landing Page",
+        content: "<!doctype html><html><body><h1>Initial direction</h1><p>The artifact needs one product decision.</p></body></html>",
+        metadata: { taskType: "landing-page", format: "single-file-html" },
         createdAt: now,
         updatedAt: now,
       },
@@ -76,10 +77,15 @@ export class ScriptedLifecycleProvider implements AiProvider {
       artifact: {
         id: "artifact_core",
         sessionId: context.session.id,
-        kind: "markdown",
+        kind: "website",
         version: 2,
-        title: "Completed Direction",
-        content: `# Completed Direction\n\nFinalized with user input: ${context.decision.response}`,
+        title: "Completed Landing Page",
+        content: `<!doctype html><html><body><h1>Completed direction</h1><p>Finalized with user input: ${context.decision.response}</p></body></html>`,
+        metadata: {
+          taskType: "landing-page",
+          format: "single-file-html",
+          decisionInfluence: context.decision.response,
+        },
         createdAt: context.session.currentArtifact?.createdAt ?? now,
         updatedAt: now,
       },
