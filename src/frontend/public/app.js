@@ -19,11 +19,13 @@ const elements = {
   restartButton: document.querySelector("#restart-button"),
   artifactEmpty: document.querySelector("#artifact-empty"),
   artifactPreview: document.querySelector("#artifact-preview"),
+  browserFrame: document.querySelector("#browser-frame"),
   artifactTitle: document.querySelector("#artifact-title"),
   artifactVersion: document.querySelector("#artifact-version"),
   nowWorking: document.querySelector("#now-working"),
   currentActivity: document.querySelector("#current-activity"),
   activityList: document.querySelector("#activity-list"),
+  workPane: document.querySelector(".work-pane"),
   completion: document.querySelector("#completion"),
   completionSummary: document.querySelector("#completion-summary"),
   decisionSummary: document.querySelector("#decision-summary"),
@@ -34,6 +36,8 @@ let session;
 let eventSource;
 let selectedOptionId;
 let toastTimeout;
+let renderedArtifactVersion = 0;
+const seenEventIds = new Set();
 
 elements.shapeOptions.addEventListener("click", async (event) => {
   const button = event.target.closest("button[data-direction]");
@@ -111,6 +115,8 @@ elements.restartButton.addEventListener("click", () => {
   disconnect();
   session = undefined;
   selectedOptionId = undefined;
+  renderedArtifactVersion = 0;
+  seenEventIds.clear();
   elements.taskInput.disabled = false;
   elements.taskInput.focus();
   renderSession();
@@ -214,12 +220,28 @@ function renderArtifact() {
   elements.artifactVersion.textContent = `v${artifact?.version ?? 0}`;
   if (isWebsite && elements.artifactPreview.srcdoc !== artifact.content) {
     elements.artifactPreview.srcdoc = artifact.content;
+    if (artifact.version !== renderedArtifactVersion) {
+      elements.browserFrame.animate([
+        { transform: "scale(.992)", opacity: .82 },
+        { transform: "scale(1)", opacity: 1 },
+      ], { duration: 520, easing: "cubic-bezier(.2,.8,.2,1)" });
+      elements.artifactPreview.animate([
+        { opacity: 0 },
+        { opacity: 1 },
+      ], { duration: 460, easing: "ease-out" });
+      renderedArtifactVersion = artifact.version;
+    }
   }
 }
 
 function renderActivity(status) {
   const events = session?.events ?? [];
+  const hasNewEvents = events.some((event) => !seenEventIds.has(event.id));
   elements.activityList.replaceChildren(...(events.length ? events.map(renderEvent) : [emptyActivity()]));
+  for (const event of events) seenEventIds.add(event.id);
+  if (hasNewEvents) {
+    requestAnimationFrame(() => elements.workPane.scrollTo({ top: elements.workPane.scrollHeight, behavior: "smooth" }));
+  }
 
   const latestActivity = [...(session?.activity ?? [])].filter((activity) => activity.metadata?.source !== "user").at(-1);
   elements.nowWorking.hidden = status !== "working";
@@ -233,7 +255,7 @@ function renderEvent(event) {
   time.textContent = new Date(event.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const message = document.createElement("p");
   message.textContent = eventMessage(event);
-  item.className = `event-${event.type.split(".").at(-1)}`;
+  item.className = `event-${event.type.split(".").at(-1)}${seenEventIds.has(event.id) ? "" : " event-enter"}`;
   item.append(time, message);
   return item;
 }

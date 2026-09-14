@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <header class="topbar">
+    <div class="app-shell">
+      <header class="topbar">
       <a class="brand" href="/" aria-label="InBetween home">
         <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
         <span>InBetween</span>
@@ -17,9 +18,9 @@
       <div class="connection" id="connection" data-connected="false">
         <span></span><span id="connection-label">Ready</span>
       </div>
-    </header>
+      </header>
 
-    <main class="workspace">
+      <main class="workspace">
       <aside class="control-pane" aria-labelledby="task-heading">
         <section class="control-section">
           <div class="section-heading">
@@ -143,7 +144,8 @@
           <li class="activity-empty">Activity will appear when work begins.</li>
         </ol>
       </aside>
-    </main>
+      </main>
+    </div>
 
     <div class="toast" id="toast" role="alert" hidden></div>
     <script type="module" src="/app.js"></script>
