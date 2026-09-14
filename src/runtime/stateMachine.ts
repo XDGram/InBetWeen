@@ -23,6 +23,14 @@ export function applyRuntimeEvent(session: WorkSession, event: RuntimeEvent): Wo
     throw new Error(`Event ${event.id} belongs to ${event.sessionId}, not ${session.id}`);
   }
 
+  if (session.events.some((existing) => existing.id === event.id)) {
+    throw new Error(`Duplicate runtime event id: ${event.id}`);
+  }
+
+  if (Date.parse(event.createdAt) < Date.parse(session.updatedAt)) {
+    throw new Error(`Stale runtime event ${event.id} cannot be applied to session ${session.id}`);
+  }
+
   if (terminalStatuses.has(session.status) && event.type !== "work.failed") {
     throw new Error(`Cannot apply ${event.type} after session is ${session.status}`);
   }
@@ -52,12 +60,18 @@ export function applyRuntimeEvent(session: WorkSession, event: RuntimeEvent): Wo
       if (session.status !== "working") {
         throw new Error(`Cannot update artifact while ${session.status}`);
       }
+      if (event.artifact.sessionId !== session.id) {
+        throw new Error(`Artifact ${event.artifact.id} belongs to ${event.artifact.sessionId}, not ${session.id}`);
+      }
       return { ...next, currentArtifact: event.artifact };
     }
 
     case "ai.needs_user": {
       if (session.status !== "working") {
         throw new Error(`AI cannot request user input while ${session.status}`);
+      }
+      if (event.decision.sessionId !== session.id) {
+        throw new Error(`Decision request ${event.decision.id} belongs to ${event.decision.sessionId}, not ${session.id}`);
       }
       return { ...next, status: "needs_user", pendingUserDecision: event.decision };
     }

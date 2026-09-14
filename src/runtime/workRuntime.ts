@@ -86,13 +86,27 @@ export class WorkRuntime {
 
   private async consumeProviderEvents(session: WorkSession, events: AsyncIterable<RuntimeEvent>): Promise<WorkSession> {
     let current = session;
-    for await (const event of events) {
-      current = await this.commitEvent(current, event);
-      if (current.status === "needs_user" || current.status === "completed" || current.status === "failed") {
-        break;
+    try {
+      for await (const event of events) {
+        current = await this.commitEvent(current, event);
+        if (current.status === "needs_user" || current.status === "completed" || current.status === "failed") {
+          break;
+        }
       }
+      return current;
+    } catch (error) {
+      return this.commitEvent(current, {
+        id: createId("event"),
+        sessionId: current.id,
+        type: "work.failed",
+        createdAt: this.clock.now(),
+        error: {
+          failedAt: this.clock.now(),
+          message: error instanceof Error ? error.message : "AI provider execution failed",
+          cause: error instanceof Error ? error.name : error,
+        },
+      });
     }
-    return current;
   }
 
   private async commitEvent(session: WorkSession, event: RuntimeEvent): Promise<WorkSession> {

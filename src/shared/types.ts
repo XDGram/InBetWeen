@@ -8,7 +8,13 @@
 
 export type WorkSessionStatus = (typeof WORK_SESSION_STATUSES)[number];
 
-export type ArtifactKind = "text" | "json" | "markdown";
+export type ArtifactKind = "text" | "json" | "markdown" | "website";
+
+export interface WebsiteArtifactMetadata {
+  taskType: "landing-page";
+  format: "single-file-html";
+  decisionInfluence?: string;
+}
 
 export interface Artifact {
   id: string;
@@ -17,6 +23,7 @@ export interface Artifact {
   version: number;
   title?: string;
   content: string;
+  metadata?: Record<string, unknown> | WebsiteArtifactMetadata;
   createdAt: string;
   updatedAt: string;
 }

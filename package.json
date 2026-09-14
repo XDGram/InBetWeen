@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/tests/**/*.test.js",
-    "lifecycle": "npm run build && node dist/src/dev/run-lifecycle.js"
+    "lifecycle:real": "npm run build && node dist/src/dev/run-real-lifecycle.js",
+    "lifecycle:local": "npm run build && node dist/src/dev/run-lifecycle.js"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
