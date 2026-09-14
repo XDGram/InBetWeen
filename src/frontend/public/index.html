@@ -26,7 +26,7 @@
           <div class="section-heading">
             <span class="step-number">01</span>
             <div>
-              <p class="eyebrow">Task</p>
+              <p class="eyebrow">Project brief</p>
               <h1 id="task-heading">What should we make?</h1>
             </div>
           </div>
@@ -44,23 +44,74 @@
             </button>
           </form>
 
+          <p class="task-summary" id="task-summary" hidden></p>
+
           <div class="session-state" aria-live="polite">
             <span>Session state</span>
             <strong id="session-status">Idle</strong>
           </div>
         </section>
 
+      </aside>
+
+      <section class="artifact-pane" aria-labelledby="artifact-heading">
+        <header class="artifact-header">
+          <div>
+            <p class="eyebrow">Artifact</p>
+            <h2 id="artifact-heading">Website preview</h2>
+          </div>
+          <div class="artifact-meta">
+            <span id="artifact-title">No artifact yet</span>
+            <span id="artifact-version">v0</span>
+          </div>
+        </header>
+
+        <div class="browser-frame" id="browser-frame">
+          <div class="preview-artboard">
+            <div class="browser-bar" aria-hidden="true">
+              <span></span><span></span><span></span>
+              <div>Preview</div>
+            </div>
+            <div class="artifact-empty" id="artifact-empty">
+              <div class="empty-glyph" aria-hidden="true"><span></span><span></span></div>
+              <p>Your website will take shape here.</p>
+              <small>Artifact updates come directly from the runtime.</small>
+            </div>
+            <iframe id="artifact-preview" title="Generated website preview" sandbox="allow-scripts" hidden></iframe>
+          </div>
+        </div>
+
+        <section class="completion" id="completion" hidden aria-labelledby="completion-heading">
+          <div class="completion-mark" aria-hidden="true">&#10003;</div>
+          <div>
+            <p class="eyebrow">Completed</p>
+            <h2 id="completion-heading">The artifact is ready.</h2>
+            <p id="completion-summary"></p>
+            <div id="decision-summary"></div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="work-pane" aria-labelledby="work-heading">
+        <div class="section-heading compact">
+          <span class="step-number">03</span>
+          <div>
+            <p class="eyebrow">InBetween</p>
+            <h2 id="work-heading">Your control</h2>
+          </div>
+        </div>
+
         <section class="shape-section" id="shape-section" hidden aria-labelledby="shape-heading">
           <div class="shape-labels">
             <p class="shape-flag">Shape</p>
             <span>Optional</span>
           </div>
-          <h2 id="shape-heading">Shape the result</h2>
-          <p class="shape-prompt">How should this feel?</p>
+          <h2 id="shape-heading">Which direction feels right?</h2>
+          <p class="shape-prompt">A small preference the AI can carry into this pass.</p>
           <div class="shape-options" id="shape-options">
-            <button type="button" data-direction="minimal">Minimal</button>
-            <button type="button" data-direction="bold">Bold</button>
-            <button type="button" data-direction="ai_decide">Let AI decide</button>
+            <button type="button" data-direction="minimal"><strong>Minimal</strong><span>Calm and restrained</span></button>
+            <button type="button" data-direction="bold"><strong>Bold</strong><span>Sharp and direct</span></button>
+            <button type="button" data-direction="ai_decide"><strong>Let AI decide</strong><span>Use the strongest fit</span></button>
           </div>
           <p class="shape-acknowledgement" id="shape-acknowledgement" hidden></p>
         </section>
@@ -87,62 +138,20 @@
           <p id="failure-message"></p>
           <button class="secondary-button" id="restart-button" type="button">Start a new session</button>
         </section>
-      </aside>
 
-      <section class="artifact-pane" aria-labelledby="artifact-heading">
-        <header class="artifact-header">
-          <div>
-            <p class="eyebrow">Artifact</p>
-            <h2 id="artifact-heading">Website preview</h2>
+        <section class="activity-card" aria-label="Runtime activity">
+          <div class="activity-card-header"><span>Work activity</span><small>Live</small></div>
+          <div class="now-working" id="now-working" hidden>
+            <span class="working-pulse" aria-hidden="true"></span>
+            <div>
+              <small>Now</small>
+              <p id="current-activity"></p>
+            </div>
           </div>
-          <div class="artifact-meta">
-            <span id="artifact-title">No artifact yet</span>
-            <span id="artifact-version">v0</span>
-          </div>
-        </header>
-
-        <div class="browser-frame" id="browser-frame">
-          <div class="browser-bar" aria-hidden="true">
-            <span></span><span></span><span></span>
-            <div>Preview</div>
-          </div>
-          <div class="artifact-empty" id="artifact-empty">
-            <div class="empty-glyph" aria-hidden="true"><span></span><span></span></div>
-            <p>Your website will take shape here.</p>
-            <small>Artifact updates come directly from the runtime.</small>
-          </div>
-          <iframe id="artifact-preview" title="Generated website preview" sandbox="allow-scripts" hidden></iframe>
-        </div>
-
-        <section class="completion" id="completion" hidden aria-labelledby="completion-heading">
-          <div class="completion-mark" aria-hidden="true">&#10003;</div>
-          <div>
-            <p class="eyebrow">Completed</p>
-            <h2 id="completion-heading">The artifact is ready.</h2>
-            <p id="completion-summary"></p>
-            <div id="decision-summary"></div>
-          </div>
+          <ol class="activity-list" id="activity-list" aria-live="polite">
+            <li class="activity-empty">Activity will appear when work begins.</li>
+          </ol>
         </section>
-      </section>
-
-      <aside class="work-pane" aria-labelledby="work-heading">
-        <div class="section-heading compact">
-          <span class="step-number">02</span>
-          <div>
-            <p class="eyebrow">Work</p>
-            <h2 id="work-heading">Live activity</h2>
-          </div>
-        </div>
-        <div class="now-working" id="now-working" hidden>
-          <span class="working-pulse" aria-hidden="true"></span>
-          <div>
-            <small>Now</small>
-            <p id="current-activity"></p>
-          </div>
-        </div>
-        <ol class="activity-list" id="activity-list" aria-live="polite">
-          <li class="activity-empty">Activity will appear when work begins.</li>
-        </ol>
       </aside>
       </main>
     </div>

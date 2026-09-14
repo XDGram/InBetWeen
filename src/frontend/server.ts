@@ -197,7 +197,14 @@ function sendJson(response: ServerResponse, status: number, body: unknown): void
 
 function serveStatic(publicDirectory: string, pathname: string, response: ServerResponse): void {
   const asset = pathname === "/" ? "index.html" : pathname.slice(1);
-  const allowedAssets = new Set(["index.html", "app.js", "styles.css"]);
+  const allowedAssets = new Set([
+    "index.html",
+    "app.js",
+    "styles.css",
+    "fonts/manrope-regular.ttf",
+    "fonts/manrope-medium.ttf",
+    "fonts/manrope-semibold.ttf",
+  ]);
   if (!allowedAssets.has(asset)) {
     sendJson(response, 404, { error: "Not found." } satisfies ApiError);
     return;
@@ -213,6 +220,7 @@ function serveStatic(publicDirectory: string, pathname: string, response: Server
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
     ".css": "text/css; charset=utf-8",
+    ".ttf": "font/ttf",
   };
   response.writeHead(200, { "Content-Type": contentTypes[extname(filePath)] ?? "application/octet-stream" });
   createReadStream(filePath).pipe(response);

@@ -1,6 +1,8 @@
 const elements = {
   taskForm: document.querySelector("#task-form"),
   taskInput: document.querySelector("#task-input"),
+  taskHeading: document.querySelector("#task-heading"),
+  taskSummary: document.querySelector("#task-summary"),
   startButton: document.querySelector("#start-button"),
   sessionStatus: document.querySelector("#session-status"),
   shapeSection: document.querySelector("#shape-section"),
@@ -161,6 +163,9 @@ function renderSession() {
   elements.sessionStatus.textContent = status.replace("_", " ");
   elements.taskInput.disabled = Boolean(session);
   elements.startButton.hidden = Boolean(session);
+  elements.taskHeading.textContent = session ? "Current brief" : "What should we make?";
+  elements.taskSummary.hidden = !session;
+  elements.taskSummary.textContent = session?.task ?? "";
   setCommandBusy(false);
 
   renderDecision(status);
