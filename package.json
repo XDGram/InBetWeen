@@ -9,6 +9,7 @@
     "test": "npm run build && node --test dist/tests/**/*.test.js",
     "dev": "npm run build && node dist/src/frontend/run-server.js",
     "lifecycle": "npm run lifecycle:local",
+    "mcp": "node dist/src/mcp/run-server.js",
     "persistence:verify": "npm run build && node dist/src/dev/verify-durable-persistence.js",
     "lifecycle:real": "npm run build && node dist/src/dev/run-real-lifecycle.js",
     "lifecycle:local": "npm run build && node dist/src/dev/run-lifecycle.js"
@@ -16,5 +17,8 @@
   "devDependencies": {
     "@types/node": "^24.0.0",
     "typescript": "^5.9.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
   }
 }
