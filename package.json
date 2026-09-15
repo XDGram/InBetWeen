@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/tests/**/*.test.js",
     "dev": "npm run build && node dist/src/frontend/run-server.js",
+    "lifecycle": "npm run lifecycle:local",
     "lifecycle:real": "npm run build && node dist/src/dev/run-real-lifecycle.js",
     "lifecycle:local": "npm run build && node dist/src/dev/run-lifecycle.js"
   },

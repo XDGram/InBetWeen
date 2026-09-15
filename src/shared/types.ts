@@ -87,6 +87,7 @@ export interface ErrorState {
 export interface WorkSession {
   id: string;
   task: string;
+  context?: Record<string, unknown>;
   status: WorkSessionStatus;
   currentArtifact?: Artifact;
   activity: WorkActivity[];
@@ -165,5 +166,6 @@ export type RuntimeEvent =
 export interface CreateWorkSessionInput {
   id?: string;
   task: string;
+  context?: Record<string, unknown>;
   now?: string;
 }

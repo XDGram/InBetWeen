@@ -9,6 +9,7 @@ export function createWorkSession(input: CreateWorkSessionInput): WorkSession {
   return {
     id: input.id ?? createId("session"),
     task: input.task,
+    context: input.context,
     status: "idle",
     activity: [],
     decisions: [],
