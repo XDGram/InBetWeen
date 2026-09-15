@@ -1,5 +1,11 @@
 import type { Artifact, RuntimeEvent, UserDecision, UserDirection, WorkSession } from "../shared/types.js";
 
+export interface RuntimeEventCommit {
+  previousSession: WorkSession;
+  nextSession: WorkSession;
+  event: RuntimeEvent;
+}
+
 export interface WorkSessionStore {
   saveSession(session: WorkSession): Promise<void>;
   getSession(sessionId: string): Promise<WorkSession | undefined>;
@@ -8,6 +14,8 @@ export interface WorkSessionStore {
 export interface RuntimeEventStore {
   appendEvent(event: RuntimeEvent): Promise<void>;
   listEvents(sessionId: string): Promise<RuntimeEvent[]>;
+  /** Atomically persists one authoritative runtime transition. */
+  commitRuntimeEvent(commit: RuntimeEventCommit): Promise<void>;
 }
 
 export interface ArtifactStore {

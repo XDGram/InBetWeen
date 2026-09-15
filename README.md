@@ -15,12 +15,15 @@ Core lifecycle:
 - `npm run dev` builds and starts the user-facing interface at `http://127.0.0.1:4173`.
 - `npm run lifecycle:real` runs the real env-configured AI landing-page lifecycle.
 - `npm run lifecycle:local` runs the local scripted infrastructure/test harness.
+- `npm run persistence:verify` proves a session and its event history survive reopening the local database.
 
 ## Environment
 
-Provider configuration is loaded from environment variables. No API keys are hardcoded.
+Provider and persistence configuration are loaded from environment variables. No API keys are hardcoded.
 
 See `.env.example` for the intended shape.
+
+The frontend uses local SQLite persistence by default at `.inbetween-data/inbetween.sqlite`. Set `INBETWEEN_PERSISTENCE=memory` for an explicitly ephemeral process, or set `INBETWEEN_SQLITE_PATH` so multiple local processes open the same database file.
 
 The interface creates a real runtime session, subscribes to committed events over Server-Sent Events, and renders website artifacts in a sandboxed preview. Starting and continuing work use the configured AI provider; missing or invalid provider configuration becomes a visible runtime failure.
 

@@ -1,5 +1,5 @@
 import type { Artifact, RuntimeEvent, UserDecision, UserDirection, WorkSession } from "../shared/types.js";
-import type { PersistenceAdapter } from "./persistence.js";
+import type { PersistenceAdapter, RuntimeEventCommit } from "./persistence.js";
 
 export class InMemoryPersistence implements PersistenceAdapter {
   private readonly sessions = new Map<string, WorkSession>();
@@ -9,6 +9,9 @@ export class InMemoryPersistence implements PersistenceAdapter {
   private readonly directions: UserDirection[] = [];
 
   async saveSession(session: WorkSession): Promise<void> {
+    if (this.sessions.has(session.id)) {
+      throw new Error(`Session ${session.id} already exists`);
+    }
     this.sessions.set(session.id, structuredClone(session));
   }
 
@@ -23,6 +26,22 @@ export class InMemoryPersistence implements PersistenceAdapter {
 
   async listEvents(sessionId: string): Promise<RuntimeEvent[]> {
     return this.events.filter((event) => event.sessionId === sessionId).map((event) => structuredClone(event));
+  }
+
+  async commitRuntimeEvent({ previousSession, nextSession, event }: RuntimeEventCommit): Promise<void> {
+    const current = this.sessions.get(previousSession.id);
+    if (!current || current.updatedAt !== previousSession.updatedAt) {
+      throw new Error(`Persistence conflict for session ${previousSession.id}`);
+    }
+    if (this.events.some((existing) => existing.id === event.id)) {
+      throw new Error(`Duplicate runtime event id: ${event.id}`);
+    }
+
+    this.events.push(structuredClone(event));
+    if (event.type === "artifact.updated") this.artifacts.set(event.artifact.id, structuredClone(event.artifact));
+    if (event.type === "user.responded") this.decisions.push(structuredClone(event.decision));
+    if (event.type === "user.direction_provided") this.directions.push(structuredClone(event.direction));
+    this.sessions.set(nextSession.id, structuredClone(nextSession));
   }
 
   async saveArtifact(artifact: Artifact): Promise<void> {

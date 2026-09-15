@@ -502,11 +502,11 @@ export class WorkRuntime implements ExternalAgentRuntimePort {
     }
 
     const next = applyRuntimeEvent(authoritativeSession, event);
-    await this.persistence.appendEvent(event);
-    if (event.type === "artifact.updated") await this.persistence.saveArtifact(event.artifact);
-    if (event.type === "user.responded") await this.persistence.saveDecision(event.decision);
-    if (event.type === "user.direction_provided") await this.persistence.saveDirection(event.direction);
-    await this.persistence.saveSession(next);
+    await this.persistence.commitRuntimeEvent({
+      previousSession: authoritativeSession,
+      nextSession: next,
+      event,
+    });
 
     for (const listener of this.listeners.get(session.id) ?? []) {
       try {
@@ -551,8 +551,11 @@ function toExternalError(error: unknown, sessionId?: string): ExternalAgentError
   const message = error instanceof Error ? error.message : "Unexpected external-agent runtime error.";
   if (/does not exist/i.test(message)) return { code: "session_not_found", message, retryable: false, sessionId };
   if (/Duplicate runtime event/i.test(message)) return { code: "duplicate_event", message, retryable: false, sessionId };
-  if (/Stale runtime event/i.test(message)) return { code: "stale_event", message, retryable: true, sessionId };
+  if (/Stale runtime event|Persistence conflict/i.test(message)) {
+    return { code: "stale_event", message, retryable: true, sessionId };
+  }
   if (/belongs to/i.test(message)) return { code: "wrong_session", message, retryable: false, sessionId };
+  if (/already exists/i.test(message)) return { code: "conflict", message, retryable: false, sessionId };
   if (/Cannot|cannot|needs user|pending decision/i.test(message)) {
     return { code: "invalid_session_state", message, retryable: false, sessionId };
   }
